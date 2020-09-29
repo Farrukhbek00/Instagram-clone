@@ -10,7 +10,9 @@ class ProfilesController extends Controller
 {
     public function index(User $user)
     {
-        return view('profiles.index', compact('user'));
+        $follows = (auth()->user()) ? auth()->user()->following->contains($user->id) : false;
+
+        return view('profiles.index', compact('user', 'follows'));
     }
 
     public function edit(User $user)
@@ -36,11 +38,13 @@ class ProfilesController extends Controller
 
             $image = Image::make(public_path("storage/{$imagePath}"))->fit(1000, 1000);
             $image->save();
+
+            $imageArray = ['image' => $imagePath];
         }
 
         auth()->user()->profile->update(array_merge(
             $data,
-            ['image'=> $imagePath],
+            $imageArray ?? []
         ));
 
         return redirect("/profile/{$user->id}");
